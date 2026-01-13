@@ -54,3 +54,31 @@ app.get("/user/:userId", async (req, res) => {
 app.listen(PORT, () => {
   console.log("Proxy running on port", PORT);
 });
+
+app.get("/groups/:userId", async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const response = await fetch(
+      `https://groups.roblox.com/v2/users/${userId}/groups/roles`
+    );
+
+    if (!response.ok) {
+      return res.status(404).json({ error: "Groups not found" });
+    }
+
+    const data = await response.json();
+
+    const groups = data.data.map(entry => ({
+      groupId: entry.group.id,
+      name: entry.group.name,
+      role: entry.role.name,
+      image: entry.group.emblemUrl
+    }));
+
+    res.json(groups);
+  } catch (err) {
+    res.status(500).json({ error: "Proxy error" });
+  }
+});
+
