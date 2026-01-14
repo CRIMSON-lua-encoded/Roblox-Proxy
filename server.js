@@ -6,7 +6,7 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-/* ================= USER BY USERNAME ================= */
+/* ================= USER INFO ================= */
 
 app.get("/user/:userId", async (req, res) => {
   try {
@@ -37,34 +37,8 @@ app.get("/user/:userId", async (req, res) => {
     });
 
   } catch (err) {
+    console.error("USER ERROR:", err);
     res.status(500).json({ error: "Internal error" });
-  }
-});
-
-    const userId = user.id;
-
-    // STEP 2: user info
-    const userRes = await fetch(
-      `https://users.roblox.com/v1/users/${userId}`
-    );
-    const userData = await userRes.json();
-
-    // STEP 3: friend count
-    const friendsRes = await fetch(
-      `https://friends.roblox.com/v1/users/${userId}/friends/count`
-    );
-    const friendsData = await friendsRes.json();
-
-    res.json({
-      userId: userId,
-      username: userData.name,
-      displayName: userData.displayName,
-      created: userData.created,
-      friends: friendsData.count
-    });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: "Proxy error" });
   }
 });
 
@@ -92,10 +66,14 @@ app.get("/groups/:userId", async (req, res) => {
     }));
 
     res.json(groups);
+
   } catch (err) {
+    console.error("GROUP ERROR:", err);
     res.status(500).json({ error: "Proxy error" });
   }
 });
+
+/* ================= START ================= */
 
 app.listen(PORT, () => {
   console.log("🔥 Roblox Proxy running on port", PORT);
