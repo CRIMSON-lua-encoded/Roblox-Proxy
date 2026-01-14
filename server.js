@@ -8,29 +8,38 @@ const PORT = process.env.PORT || 3000;
 
 /* ================= USER BY USERNAME ================= */
 
-app.get("/user/by-username/:username", async (req, res) => {
+app.get("/user/:userId", async (req, res) => {
   try {
-    const username = req.params.username;
+    const userId = req.params.userId;
 
-    // STEP 1: username → userId
-    const lookupRes = await fetch(
-      "https://users.roblox.com/v1/usernames/users",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          usernames: [username],
-          excludeBannedUsers: true
-        })
-      }
+    const userRes = await fetch(
+      `https://users.roblox.com/v1/users/${userId}`
     );
 
-    const lookupData = await lookupRes.json();
-    const user = lookupData.data?.[0];
-
-    if (!user) {
+    if (!userRes.ok) {
       return res.status(404).json({ error: "User not found" });
     }
+
+    const userData = await userRes.json();
+
+    const friendsRes = await fetch(
+      `https://friends.roblox.com/v1/users/${userId}/friends/count`
+    );
+    const friendsData = await friendsRes.json();
+
+    res.json({
+      userId: userData.id,
+      username: userData.name,
+      displayName: userData.displayName,
+      description: userData.description || "",
+      created: userData.created,
+      friends: friendsData.count
+    });
+
+  } catch (err) {
+    res.status(500).json({ error: "Internal error" });
+  }
+});
 
     const userId = user.id;
 
