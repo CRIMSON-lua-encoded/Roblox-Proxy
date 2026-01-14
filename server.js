@@ -6,8 +6,44 @@ app.use(express.json());
 
 const PORT = process.env.PORT || 3000;
 
-/* ================= USER INFO ================= */
+/* ================= FRIENDS ================= */
+app.get("/friends/:userId", async (req, res) => {
+  try {
+    const userId = req.params.userId;
 
+    const friendsRes = await fetch(
+      `https://friends.roblox.com/v1/users/${userId}/friends`
+    );
+
+    if (!friendsRes.ok) {
+      return res.status(404).json({ error: "Friends not found" });
+    }
+
+    const friendsData = await friendsRes.json();
+
+    const friends = [];
+
+    for (const friend of friendsData.data) {
+      const userRes = await fetch(
+        `https://users.roblox.com/v1/users/${friend.id}`
+      );
+      const userData = await userRes.json();
+
+      friends.push({
+        userId: friend.id,
+        username: friend.name,
+        displayName: friend.displayName,
+        description: userData.description || "",
+        created: userData.created
+      });
+    }
+
+    res.json(friends);
+  } catch (err) {
+    res.status(500).json({ error: "Proxy error" });
+  }
+});
+/* ================= USER INFO ================= */
 app.get("/user/:userId", async (req, res) => {
   try {
     const userId = req.params.userId;
